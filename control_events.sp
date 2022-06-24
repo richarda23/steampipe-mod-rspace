@@ -9,8 +9,8 @@ case  when q.total  > 0
    else 'info'
    end  as status,
 case  when q.total  > 0
-   then  'items created'
-   else 'items not created'
+   then  'items created, edited or viewed'
+   else 'No items created, edited or viewed in last 7d'
    end  as reason
 from   (select count(*)as total  from rspace_event where domain = 'RECORD' and timestamp > now() - interval '7d' )q;
   EOT
@@ -18,6 +18,7 @@ from   (select count(*)as total  from rspace_event where domain = 'RECORD' and t
 
 control "untitled_documents" {
   title ="Untitled documents"
+  description = "Leaving documents with no title is poor practice, and makes searching  and navigation more difficult"
   sql = <<EOT
    select global_id as resource,  'info'  as status, concat(global_id, ' has no title')  as reason  from rspace_document where name ='Untitled document';
 EOT

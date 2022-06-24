@@ -11,8 +11,9 @@ dashboard "rspace_dashboard" {
       control.untitled_documents
     ]
   }
+
   card {
-    sql   = query.created_in_last_7_days.sql
+    query   = query.created_in_last_7_days
     width = 4
   }
   card {
@@ -23,20 +24,31 @@ dashboard "rspace_dashboard" {
     sql   = query.created_this_calendar_year.sql
     width = 4
   }
-  container {
     chart {
       title = "ELN documents created by Month"
-      sql   = query.rspace_doc_created_by_month.sql
-      width = 6
+      query   = query.rspace_items_created_by_month
+      args = {
+        "domain" ="RECORD"
+      }
+      width = 4
     }
-  }
-  container {
     chart {
       title = "Samples created by Month"
-      sql   = query.rspace_samples_created_by_month.sql
-      width = 6
+      query   = query.rspace_items_created_by_month
+      args = {
+        "domain" ="INV_SAMPLE"
+      }
+      width = 4
     }
+  chart {
+    title = "Containers created by Month"
+    query   = query.rspace_items_created_by_month
+    args = {
+      "domain" ="INV_CONTAINER"
+    }
+    width = 4
   }
+
 }
 
 query "created_in_last_7_days" {
@@ -64,26 +76,17 @@ query "created_this_calendar_year" {
   END
 }
 
-query "rspace_doc_created_by_month" {
-  sql = <<-EOQ
-    SELECT
-      to_char(date_trunc('month', timestamp), 'YYYY-MM') as "Month",
-      count(*) as "total"
-    from rspace_event
-    WHERE domain = 'RECORD' and action ='CREATE'
-    GROUP BY
-      "Month";
-  EOQ
-}
-
-query "rspace_samples_created_by_month" {
+query "rspace_items_created_by_month" {
   sql = <<-EOQ
     select
       to_char(date_trunc('month', timestamp), 'YYYY-MM') as "Month",
       count(*) as "total"
     from rspace_event
-    WHERE domain = 'INV_SAMPLE' and action ='CREATE'
+    WHERE domain = $1 and action ='CREATE'
     group by
       "Month";
   EOQ
+  param "domain" {
+    default = "INV_SAMPLE"
+  }
 }
