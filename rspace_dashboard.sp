@@ -49,6 +49,23 @@ dashboard "rspace_dashboard" {
     width = 4
   }
 
+  chart {
+    title = "User accounts created by Month"
+    query   = query.rspace_items_created_by_month
+    args = {
+      "domain" ="USER"
+    }
+    width = 4
+  }
+
+  chart {
+    title = "LabGroups  created by Month"
+    query   = query.rspace_items_created_by_month
+    args = {
+      "domain" ="GROUP"
+    }
+    width = 4
+  }
 }
 
 query "created_in_last_7_days" {
