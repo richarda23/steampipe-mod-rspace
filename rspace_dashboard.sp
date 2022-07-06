@@ -12,6 +12,64 @@ dashboard "rspace_dashboard" {
     ]
   }
 
+  input "rspace_event_domain" {
+  title = "Event Domain"
+  type  = "select"
+  width = 3
+
+  sql  = <<-EOQ
+    with domains as (select d from unnest(array['AUDIT',
+     'RECORD', 'NOTEBOOK','INV_SAMPLE', 'INV_SUBSAMPLE', 'INV_CONTAINER', 'USER','GROUP']) as d)
+    select d as label,
+     d as value 
+    from
+      domains
+  EOQ
+}
+input "rspace_event_interval" {
+
+  title = "Interval (days)"
+  type = "select"
+  width = 3
+  sql = <<-EOQ
+    with intervals as (select i from unnest(array[7,14,30,182,365]) as i )
+    select i  as label,
+      i as value 
+    from intervals
+  EOQ
+}
+
+card {
+  query = query.items_created_in_last_days
+  args = {
+    domain=self.input.rspace_event_domain
+    intervals = self.input.rspace_event_interval
+  }
+  width = 6
+}
+
+input "rspace_event_action" {
+  title = "Event Action"
+  type  = "select"
+  width = 3
+
+  sql  = <<-EOQ
+    with actions as (select distinct(action) as a from rspace_event)
+    select a as label,
+     a as value 
+    from
+      actions;
+  EOQ
+}
+
+card {
+  query = query.actions_in_last_7_days
+  args = {
+   action = self.input.rspace_event_action
+  }
+  width = 9
+}
+
   card {
     query   = query.created_in_last_7_days
     width = 4
@@ -65,6 +123,34 @@ dashboard "rspace_dashboard" {
       "domain" ="GROUP"
     }
     width = 4
+  }
+}
+
+query "actions_in_last_7_days" {
+  sql = <<-END
+  SELECT 'actions in last 7 days' as label, count(*) as value  from rspace_event
+    WHERE action = $1
+    AND timestamp > now() - interval '7d'
+  END
+  param "action" {
+    description = "An event action"
+    default="CREATE"
+  }
+}
+
+query "items_created_in_last_days" {
+  sql = <<-END
+  SELECT 'Items created for chosen domain in last N days' as label, count(*) as value  from rspace_event
+    WHERE domain = $1
+    AND action ='CREATE'
+    AND timestamp > now() - interval '1d' * $2
+  END
+  param "domain" {
+    description = "An event domain"
+  }
+  param "intervals" {
+    description = "Interval in days"
+   
   }
 }
 
