@@ -15,22 +15,24 @@ dashboard "rspace_dashboard" {
   input "rspace_event_domain" {
   title = "Event Domain"
   type  = "select"
+  placeholder = "Choose a domain"
   width = 3
+  option "RECORD" {}
+  option "NOTEBOOK" {}
+  option "INV_SAMPLE" {}
+  option "INV_SUBSAMPLE" {}
+  option "INV_CONTAINER" {}
+  option "USER" {}
+  option "GROUP" {}
 
-  sql  = <<-EOQ
-    with domains as (select d from unnest(array['AUDIT',
-     'RECORD', 'NOTEBOOK','INV_SAMPLE', 'INV_SUBSAMPLE', 'INV_CONTAINER', 'USER','GROUP']) as d)
-    select d as label,
-     d as value 
-    from
-      domains
-  EOQ
 }
 input "rspace_event_interval" {
 
   title = "Interval (days)"
   type = "select"
   width = 3
+  placeholder = "Choose a time range"
+
   sql = <<-EOQ
     with intervals as (select i from unnest(array[7,14,30,182,365]) as i )
     select i  as label,
